@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimingCalc Profile Shared</title>
+    <style>
+        body {
+            background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; margin: 0; text-align: center; padding: 20px;
+        }
+        .container {
+            background-color: #1e1e1e; padding: 40px 30px; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); max-width: 400px; width: 100%; border: 1px solid #333;
+        }
+        h1 { color: #ffffff; margin-bottom: 10px; font-size: 1.5rem; }
+        p { color: #aaaaaa; margin-bottom: 30px; line-height: 1.5; }
+        .btn {
+            display: inline-block; background-color: #555555; color: #ffffff; text-decoration: none;
+            padding: 15px 25px; border-radius: 8px; font-weight: bold; letter-spacing: 1px;
+            width: 100%; box-sizing: border-box; border: 2px solid #ffffff; transition: 0.2s; margin-bottom: 15px;
+        }
+        .btn:hover { background-color: #666666; }
+        .btn:active { background-color: #e06666; border-color: #e06666; transform: scale(0.98); }
+        .btn-download { background-color: #4a90e2; border-color: #4a90e2; }
+        .btn-download:hover { background-color: #357abd; }
+        .loader {
+            border: 4px solid #333; border-top: 4px solid #4a90e2; border-radius: 50%;
+            width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loadingSection">
+            <div class="loader"></div>
+            <h1>Opening TimingCalc...</h1>
+            <p>Se l'app è installata sul tuo dispositivo, si aprirà automaticamente tra un istante.</p>
+        </div>
+
+        <div id="fallbackSection" style="display: none;">
+            <h1>App non trovata</h1>
+            <p>Sembra che tu non abbia l'app installata o il dispositivo ha bloccato l'apertura.</p>
+            <a href="#" id="manualOpenBtn" class="btn">
+                RIPROVA AD APRIRE L'APP
+            </a>
+            <a href="TimingCalc.apk" download class="btn btn-download">
+                SCARICA L'APP (APK)
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const queryString = window.location.search;
+        const appLink = "timingcalc://share" + queryString;
+
+        window.onload = function() {
+            window.location.href = appLink;
+
+            setTimeout(function() {
+                document.getElementById('loadingSection').style.display = 'none';
+                document.getElementById('fallbackSection').style.display = 'block';
+            }, 2500);
+        };
+
+        document.getElementById('manualOpenBtn').onclick = function(e) {
+            e.preventDefault();
+            window.location.href = appLink;
+        };
+    </script>
+</body>
+</html>

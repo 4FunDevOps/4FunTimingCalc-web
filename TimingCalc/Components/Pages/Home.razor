@@ -391,34 +391,44 @@
     }
 
     /// <summary>
-    /// Apre la finestra di condivisione di Android passando un testo formattato contenente il link univoco "timingcalc://".
+    /// Genera un link HTTPS cliccabile (GitHub Pages) e apre la finestra di condivisione nativa.
+    /// Il link contiene i parametri necessari per ricostruire il grafico nell'app del destinatario.
     /// </summary>
     private async Task ShareProfile()
     {
         string nameToShare = string.IsNullOrWhiteSpace(displayProfileName) ? "Custom Profile" : displayProfileName;
         
-        string url = $"timingcalc://share?n={Uri.EscapeDataString(nameToShare)}" +
-                     $"&ino={currentProfile.IntakeOpensBtdc}&inc={currentProfile.IntakeClosesAbdc}" +
-                     $"&exo={currentProfile.ExhaustOpensBbdc}&exc={currentProfile.ExhaustClosesAtdc}";
+        // 1. Usa l'indirizzo pubblico di GitHub Pages (cliccabile su WhatsApp)
+        // Aggiungiamo i parametri matematici come QueryString
+        string baseUrl = "https://4fundevops.github.io/4FunTimingCalc-web/";
+        string queryString = $"?n={Uri.EscapeDataString(nameToShare)}" +
+                             $"&ino={currentProfile.IntakeOpensBtdc}" +
+                             $"&inc={currentProfile.IntakeClosesAbdc}" +
+                             $"&exo={currentProfile.ExhaustOpensBbdc}" +
+                             $"&exc={currentProfile.ExhaustClosesAtdc}";
 
+        string fullLink = baseUrl + queryString;
+
+        // 2. Formattazione del messaggio come richiesto
         string shareText = $"4Fun MotorSport TimingCams Calc.\n" +
                            $"Profile Name : \"{nameToShare}\"\n" +
                            $"Durations : IN= {intakeDuration} , EX= {exhaustDuration}\n" +
-                           $"Link : {url}\n\n" +
+                           $"Link : {fullLink}\n\n" +
                            $"If you don't have the 4Fun, please Download here :\n" +
-                           $"[Link MEGA (da inserire in futuro)]";
+                           $"{baseUrl}";
 
         try
         {
+            // 3. Apre la tendina di condivisione di Android
             await Microsoft.Maui.ApplicationModel.DataTransfer.Share.RequestAsync(new Microsoft.Maui.ApplicationModel.DataTransfer.ShareTextRequest
             {
                 Text = shareText,
-                Title = "Condividi Profilo Camma"
+                Title = "Share Camshaft Profile"
             });
         }
         catch (Exception ex)
         {
-            ShowAlert($"Errore durante la condivisione: {ex.Message}", true);
+            ShowAlert($"Share error: {ex.Message}", true);
         }
     }
 

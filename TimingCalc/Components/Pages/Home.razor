@@ -1,0 +1,555 @@
+﻿@* // File: Pages/Home.razor *@
+@page "/"
+@using TimingCalc.Core.Entities
+@using TimingCalc.Core.Interfaces
+@using TimingCalc.Core.Services
+@inject ICamshaftCalculatorService Calculator
+@inject IStorageService Storage
+@inject IJSRuntime JS
+@inject DeepLinkStateService DeepLink
+@implements IDisposable
+
+<div class="app-container">
+    <div class="header-bar d-flex justify-content-between align-items-center mb-4">
+        <h4 class="m-0 fw-bold title-text">Camshaft Timing Calculator</h4>
+        <button class="btn btn-outline-info btn-sm" @onclick="OpenArchive">
+            <i class="bi bi-folder2-open"></i> OPEN ARCHIVE
+        </button>
+    </div>
+
+    @* --- Area Grafica --- *@
+    <div class="graphic-area position-relative mb-3">
+        @if (isCalculated)
+        {
+            <div class="diagram-container d-flex flex-column justify-content-center align-items-center h-100 py-3">
+                <div class="badges-container d-flex flex-wrap justify-content-center gap-2 mb-3 px-2">
+                    <div class="result-badge badge-intake">INTAKE DUR: @intakeDuration°</div>
+                    <div class="result-badge badge-exhaust">EXHAUST DUR: @exhaustDuration°</div>
+                    <div class="result-badge badge-overlap">OVERLAP: @overlap°</div>
+                    <div class="result-badge badge-lsa">LSA: @lsa.ToString("0.0")°</div>
+                    <div class="result-badge badge-intake-cl">INTAKE CL: @intakeCenterline.ToString("0.0")° ATDC</div>
+                    <div class="result-badge badge-exhaust-cl">EXHAUST CL: @exhaustCenterline.ToString("0.0")° BTDC</div>
+                </div>
+                
+                <svg @key="animationTrigger" width="300" height="300" viewBox="0 0 300 300" class="diagram-svg">
+                    <defs>
+                        <path id="exhaustTextDef" d="@exhaustTextPath_CounterClockwise" />
+                    </defs>
+
+                    <line x1="150" y1="20" x2="150" y2="280" stroke="#444" stroke-width="2" stroke-dasharray="5,5" />
+                    <line x1="20" y1="150" x2="280" y2="150" stroke="#444" stroke-width="2" stroke-dasharray="5,5" />
+                    <text x="150" y="15" fill="#888" font-size="12" text-anchor="middle">TDC</text>
+                    <text x="150" y="295" fill="#888" font-size="12" text-anchor="middle" font-weight="bold">BDC</text>
+                    <circle cx="150" cy="150" r="100" stroke="#333" stroke-width="1" fill="none" />
+
+                    <path id="inletPath" d="@intakeSvgPath" class="animated-path" fill="none" stroke="#4a90e2" stroke-width="12" stroke-linecap="round" />
+                    <path d="@exhaustSvgPath" class="animated-path" fill="none" stroke="#e06666" stroke-width="12" stroke-linecap="round" />
+                    <path d="@overlapSvgPath" class="animated-path" fill="none" stroke="#f6b26b" stroke-width="6" stroke-linecap="round" />
+
+                    <text fill="#fff" font-size="11" font-weight="bold" class="svg-text-label" text-anchor="middle">
+                        <textPath href="#inletPath" startOffset="@intakeTextOffset" dy="14">Inlet</textPath>
+                    </text>
+
+                    <text fill="#fff" font-size="11" font-weight="bold" class="svg-text-label" text-anchor="middle">
+                        <textPath href="#exhaustTextDef" startOffset="@exhaustTextOffset" dy="-6">Exhaust</textPath>
+                    </text>
+
+                    <circle cx="150" cy="150" r="5" fill="#888" />
+                </svg>
+
+                @* Display Nome e Note del file caricato *@
+                @if (!string.IsNullOrWhiteSpace(displayProfileName))
+                {
+                    <div class="text-center mt-3 px-3 w-100">
+                        <h5 class="text-warning fw-bold mb-1" style="letter-spacing: 1px;">@displayProfileName</h5>
+                        @if (!string.IsNullOrWhiteSpace(displayProfileNotes))
+                        {
+                            <p class="text-info small mb-0">@displayProfileNotes</p>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="diagram-placeholder d-flex justify-content-center align-items-center h-100">
+                <span class="placeholder-text">Enter timing events and press EXECUTE ANALYSIS</span>
+            </div>
+        }
+    </div>
+
+    @* --- Input Dati --- *@
+    <div class="inputs-area mb-4">
+        <div class="row g-3">
+            <div class="col-md-6 col-12">
+                <div class="input-group-custom">
+                    <label>Intake Opens (BTDC)</label>
+                    <input type="number" @bind="currentProfile.IntakeOpensBtdc" placeholder="--" onfocus="this.select()" />
+                </div>
+            </div>
+            <div class="col-md-6 col-12">
+                <div class="input-group-custom">
+                    <label>Intake Closes (ABDC)</label>
+                    <input type="number" @bind="currentProfile.IntakeClosesAbdc" placeholder="--" onfocus="this.select()" />
+                </div>
+            </div>
+            <div class="col-md-6 col-12">
+                <div class="input-group-custom">
+                    <label>Exhaust Opens (BBDC)</label>
+                    <input type="number" @bind="currentProfile.ExhaustOpensBbdc" placeholder="--" onfocus="this.select()" />
+                </div>
+            </div>
+            <div class="col-md-6 col-12">
+                <div class="input-group-custom">
+                    <label>Exhaust Closes (ATDC)</label>
+                    <input type="number" @bind="currentProfile.ExhaustClosesAtdc" placeholder="--" onfocus="this.select()" />
+                </div>
+            </div>
+        </div>
+
+        @if (isCalculated)
+        {
+            <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-outline-info flex-grow-1 fw-bold py-2" @onclick="ShareProfile">
+                    <i class="bi bi-share-fill me-1"></i> SHARE
+                </button>
+                <button class="btn btn-outline-danger flex-grow-1 fw-bold py-2" @onclick="ClearSession">
+                    <i class="bi bi-trash3-fill me-1"></i> CLEAR
+                </button>
+                <button class="btn run-btn flex-grow-1 fw-bold py-2 m-0" style="height: auto;" @onclick="ExecuteAnalysis">
+                    <i class="bi bi-arrow-clockwise me-1"></i> RE-CALC
+                </button>
+            </div>
+        }
+        else
+        {
+            <button class="btn w-100 mt-3 fw-bold run-btn" @onclick="ExecuteAnalysis">
+                <i class="bi bi-cpu me-2"></i> EXECUTE ANALYSIS
+            </button>
+        }
+    </div>
+
+    @* --- Salvataggio Dati --- *@
+    <div class="save-area p-4 rounded" id="saveArea" style="background-color: #252526;">
+        <h5 class="text-light mb-3">Save Profile Data</h5>
+        <div class="row g-3 align-items-center">
+            <div class="col-md-4 col-12">
+                <input type="text" class="form-control bg-dark text-light border-secondary" placeholder="Profile Name" @bind="currentProfile.Name" />
+            </div>
+            <div class="col-md-6 col-12">
+                <input type="text" class="form-control bg-dark text-light border-secondary" placeholder="Notes..." @bind="currentProfile.Notes" />
+            </div>
+            <div class="col-md-2 col-12">
+                <button class="btn btn-primary w-100 fw-bold save-btn" @onclick="SaveProfileData" disabled="@(!isCalculated)">SAVE</button>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(alertMessage))
+        {
+            <div class="alert @(isErrorAlert ? "alert-danger" : "alert-success") mt-3 mb-0 py-2 px-3 border-0 fw-bold shadow-sm fade-in-alert" 
+                 style="cursor: pointer;" @onclick="DismissAlert">
+                <i class="bi @(isErrorAlert ? "bi-exclamation-triangle-fill" : "bi-check-circle-fill") me-2"></i>
+                @alertMessage <span class="float-end fw-light" style="font-size: 0.8rem;">(Tap to dismiss)</span>
+            </div>
+        }
+    </div>
+
+    @* --- Pannello Archivio File --- *@
+    @if (isArchiveOpen)
+    {
+        <div class="archive-modal-overlay" @onclick="CloseArchive">
+            <div class="archive-modal-content" @onclick:stopPropagation="true">
+                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2 border-secondary">
+                    <h5 class="m-0 text-light"><i class="bi bi-folder-fill me-2 text-warning"></i> Saved Profiles</h5>
+                    <button class="btn btn-sm btn-outline-secondary text-light border-0" @onclick="CloseArchive">
+                        <i class="bi bi-x-lg fs-5"></i>
+                    </button>
+                </div>
+
+                @if (savedProfiles == null)
+                {
+                    <div class="text-center py-4 text-muted">Loading files...</div>
+                }
+                else if (savedProfiles.Count == 0)
+                {
+                    <div class="text-center py-4 text-muted">No profiles saved yet.</div>
+                }
+                else
+                {
+                    <div class="list-group list-group-flush archive-list">
+                        @foreach (var profile in savedProfiles.OrderByDescending(p => p.CreatedAt))
+                        {
+                            <div class="list-group-item bg-transparent text-light border-secondary p-2 archive-item mb-2" 
+                                 @onclick="() => LoadProfile(profile)">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong class="fs-5 text-warning">@profile.Name</strong>
+                                    <small class="text-muted" style="font-size: 0.75rem;">@profile.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                </div>
+                                
+                                @if (!string.IsNullOrEmpty(profile.Notes))
+                                {
+                                    <div class="text-info small mt-1 mb-2 text-truncate">@profile.Notes</div>
+                                }
+                                
+                                <div class="mt-1 d-flex gap-2" style="font-size: 0.75rem;">
+                                    <span class="badge bg-dark border border-secondary text-light">DUR IN: @Calculator.CalculateIntakeDuration(profile)°</span>
+                                    <span class="badge bg-dark border border-secondary text-light">DUR EX: @Calculator.CalculateExhaustDuration(profile)°</span>
+                                    <span class="badge bg-dark border border-warning text-warning">OVERLAP: @Calculator.CalculateOverlap(profile)°</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    body { background-color: #121212 !important; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    .app-container { max-width: 900px; margin: 20px auto; padding: 30px; background-color: #1a1a1a; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.8); }
+    .header-bar { padding-bottom: 10px; border-bottom: 1px solid #333; }
+    .title-text { color: #ffffff; }
+    .graphic-area { min-height: 400px; height: auto; background-color: #151515; border-radius: 8px; border: 1px solid #2d2d2d; }
+    .diagram-svg { display: block; margin: 0 auto; }
+    .placeholder-text { color: #ffffff !important; font-size: 1.1rem; letter-spacing: 1px; opacity: 0.8; }
+    
+    .svg-text-label { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9); }
+    .animated-path { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawPath 2.5s ease-out forwards; }
+    @@keyframes drawPath { to { stroke-dashoffset: 0; } }
+
+    .badges-container { width: 100%; max-width: 800px; z-index: 10; }
+    .result-badge { background-color: #111111; padding: 4px 14px; border: 1px solid; border-radius: 20px; font-size: 0.85rem; font-weight: bold; letter-spacing: 0.5px; }
+    .badge-intake { color: #4a90e2; border-color: #4a90e2; }
+    .badge-exhaust { color: #e06666; border-color: #e06666; }
+    .badge-overlap { color: #f6b26b; border-color: #f6b26b; }
+    .badge-lsa { color: #ffffff; border-color: #666666; }
+    .badge-intake-cl { color: #cccccc; border-color: #4a90e2; }
+    .badge-exhaust-cl { color: #cccccc; border-color: #e06666; }
+
+    .input-group-custom { display: flex; justify-content: space-between; align-items: center; background-color: #222; padding: 12px 20px; border-radius: 8px; border: 1px solid #333; }
+    .input-group-custom label { margin: 0; color: #ccc; font-weight: 500; }
+    .input-group-custom input { background-color: #111; border: 1px solid #444; color: #fff; padding: 6px 12px; border-radius: 4px; width: 90px; text-align: center; font-weight: bold; }
+    .input-group-custom input:focus { outline: none; border-color: #4a90e2; background-color: #1a1a1a; }
+    
+    .form-control::placeholder { color: #666; }
+    .save-btn { background-color: #5c85d6; border: none; letter-spacing: 1px; }
+
+    .run-btn { height: 50px; font-size: 1.1rem; letter-spacing: 2px; background-color: #555555; color: #ffffff; border: 2px solid #ffffff; transition: background-color 0.1s ease, transform 0.1s ease, border-color 0.1s ease; }
+    .run-btn:hover { color: #ffffff; }
+    .run-btn:active { background-color: #e06666; border-color: #e06666; color: #ffffff; transform: scale(0.98); }
+
+    .fade-in-alert { animation: fadeIn 0.3s ease-in; }
+    @@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .archive-modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.85); z-index: 1050;
+        display: flex; justify-content: center; align-items: center;
+        backdrop-filter: blur(5px);
+    }
+    .archive-modal-content {
+        background-color: #1e1e1e; width: 95%; max-width: 500px; max-height: 85vh;
+        border-radius: 12px; border: 1px solid #444; padding: 20px;
+        display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+    }
+    .archive-list { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
+    .archive-item { cursor: pointer; transition: background-color 0.2s ease; border-radius: 8px !important; border: 1px solid #333 !important; background-color: #252526 !important; }
+    .archive-item:hover { background-color: #333333 !important; border-color: #555 !important; }
+</style>
+
+@code {
+    private CamshaftProfile currentProfile = new CamshaftProfile();
+    private bool isCalculated = false;
+    private int animationTrigger = 0; 
+    private int intakeDuration, exhaustDuration, overlap;
+    private double lsa, intakeCenterline, exhaustCenterline;
+    
+    private string intakeSvgPath = "", exhaustSvgPath = "", overlapSvgPath = "", exhaustTextPath_CounterClockwise = "";
+    private string intakeTextOffset = "50%";
+    private string exhaustTextOffset = "50%";
+
+    private string? displayProfileName = "";
+    private string? displayProfileNotes = "";
+
+    private bool isArchiveOpen = false;
+    private List<CamshaftProfile>? savedProfiles = new List<CamshaftProfile>();
+    
+    private string? alertMessage = "";
+    private bool isErrorAlert = false;
+
+    /// <summary>
+    /// Metodo chiamato automaticamente all'inizializzazione del componente.
+    /// Registra l'ascolto per i Deep Link.
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        DeepLink.OnLinkReceived += HandleDeepLink;
+        
+        if (DeepLink.PendingUri != null)
+        {
+            HandleDeepLink(DeepLink.PendingUri);
+            DeepLink.PendingUri = null;
+        }
+    }
+
+    /// <summary>
+    /// Libera la memoria degli eventi al momento della distruzione della pagina.
+    /// </summary>
+    public void Dispose()
+    {
+        DeepLink.OnLinkReceived -= HandleDeepLink;
+    }
+
+    /// <summary>
+    /// Intercetta l'URL e popola il grafico e i campi matematici.
+    /// </summary>
+    /// <param name="uri">L'URL intercettato (es. timingcalc://share?...)</param>
+    private async void HandleDeepLink(Uri uri)
+    {
+        try
+        {
+            var query = uri.Query.TrimStart('?')
+                           .Split('&')
+                           .Select(q => q.Split('='))
+                           .Where(parts => parts.Length == 2)
+                           .ToDictionary(parts => parts[0], parts => Uri.UnescapeDataString(parts[1]));
+
+            await InvokeAsync(async () =>
+            {
+                currentProfile = new CamshaftProfile
+                {
+                    Name = "", 
+                    Notes = "",
+                    IntakeOpensBtdc = query.ContainsKey("ino") ? int.Parse(query["ino"]) : null,
+                    IntakeClosesAbdc = query.ContainsKey("inc") ? int.Parse(query["inc"]) : null,
+                    ExhaustOpensBbdc = query.ContainsKey("exo") ? int.Parse(query["exo"]) : null,
+                    ExhaustClosesAtdc = query.ContainsKey("exc") ? int.Parse(query["exc"]) : null
+                };
+
+                displayProfileName = query.ContainsKey("n") ? query["n"] : "Shared Profile";
+                displayProfileNotes = "Imported via shared link";
+
+                await ExecuteAnalysis();
+                StateHasChanged();
+            });
+        }
+        catch (Exception)
+        {
+            await InvokeAsync(() => ShowAlert("Error: Invalid or corrupted shared link.", true));
+        }
+    }
+
+    private async Task SafeScrollToTop()
+    {
+        try { await JS.InvokeVoidAsync("window.scrollTo", 0, 0); } catch { }
+    }
+
+    private async Task SafeScrollToBottom()
+    {
+        try 
+        { 
+            await Task.Delay(100); 
+            await JS.InvokeVoidAsync("eval", "window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });"); 
+        } 
+        catch { }
+    }
+
+    /// <summary>
+    /// Avvia il calcolo dei risultati e lo script grafico dell'SVG.
+    /// </summary>
+    private async Task ExecuteAnalysis()
+    {
+        if (currentProfile.IntakeOpensBtdc.HasValue && currentProfile.IntakeClosesAbdc.HasValue && 
+            currentProfile.ExhaustOpensBbdc.HasValue && currentProfile.ExhaustClosesAtdc.HasValue)
+        {
+            intakeDuration = Calculator.CalculateIntakeDuration(currentProfile);
+            exhaustDuration = Calculator.CalculateExhaustDuration(currentProfile);
+            overlap = Calculator.CalculateOverlap(currentProfile);
+            lsa = Calculator.CalculateLobeSeparationAngle(currentProfile);
+            intakeCenterline = Calculator.CalculateIntakeCenterline(currentProfile);
+            exhaustCenterline = Calculator.CalculateExhaustCenterline(currentProfile);
+
+            GenerateVisualDiagram();
+            
+            isCalculated = true;
+            animationTrigger++; 
+            await SafeScrollToTop();
+        }
+    }
+
+    /// <summary>
+    /// Resetta il pannello riportandolo allo stato base dell'applicazione.
+    /// </summary>
+    private void ClearSession()
+    {
+        currentProfile = new CamshaftProfile();
+        displayProfileName = "";
+        displayProfileNotes = "";
+        isCalculated = false;
+        DismissAlert();
+    }
+
+    /// <summary>
+    /// Apre la finestra di condivisione di Android passando un testo formattato contenente il link univoco "timingcalc://".
+    /// </summary>
+    private async Task ShareProfile()
+    {
+        string nameToShare = string.IsNullOrWhiteSpace(displayProfileName) ? "Custom Profile" : displayProfileName;
+        
+        string url = $"timingcalc://share?n={Uri.EscapeDataString(nameToShare)}" +
+                     $"&ino={currentProfile.IntakeOpensBtdc}&inc={currentProfile.IntakeClosesAbdc}" +
+                     $"&exo={currentProfile.ExhaustOpensBbdc}&exc={currentProfile.ExhaustClosesAtdc}";
+
+        string shareText = $"4Fun MotorSport TimingCams Calc.\n" +
+                           $"Profile Name : \"{nameToShare}\"\n" +
+                           $"Durations : IN= {intakeDuration} , EX= {exhaustDuration}\n" +
+                           $"Link : {url}\n\n" +
+                           $"If you don't have the 4Fun, please Download here :\n" +
+                           $"[Link MEGA (da inserire in futuro)]";
+
+        try
+        {
+            await Microsoft.Maui.ApplicationModel.DataTransfer.Share.RequestAsync(new Microsoft.Maui.ApplicationModel.DataTransfer.ShareTextRequest
+            {
+                Text = shareText,
+                Title = "Condividi Profilo Camma"
+            });
+        }
+        catch (Exception ex)
+        {
+            ShowAlert($"Errore durante la condivisione: {ex.Message}", true);
+        }
+    }
+
+    private void GenerateVisualDiagram()
+    {
+        double cx = 150, cy = 150;
+        double iStart = 360.0 - currentProfile.IntakeOpensBtdc.GetValueOrDefault();
+        double eStart = 180.0 - currentProfile.ExhaustOpensBbdc.GetValueOrDefault();
+        
+        intakeSvgPath = BuildSvgArc(cx, cy, 100, iStart, iStart + intakeDuration);
+        exhaustSvgPath = BuildSvgArc(cx, cy, 80, eStart, eStart + exhaustDuration);
+        overlapSvgPath = BuildSvgArc(cx, cy, 120, iStart, 360.0 + currentProfile.ExhaustClosesAtdc.GetValueOrDefault());
+
+        exhaustTextPath_CounterClockwise = BuildCounterClockwiseSvgArc(cx, cy, 80, eStart, eStart + exhaustDuration);
+
+        double iOffsetPct = (currentProfile.IntakeOpensBtdc.GetValueOrDefault() / (double)intakeDuration) * 100.0;
+        iOffsetPct = Math.Max(0.1, Math.Min(99.9, iOffsetPct));
+        intakeTextOffset = iOffsetPct.ToString(System.Globalization.CultureInfo.InvariantCulture) + "%";
+
+        double eEnd = eStart + exhaustDuration;
+        double eOffsetPct = ((eEnd - 180.0) / (double)exhaustDuration) * 100.0;
+        eOffsetPct = Math.Max(0.1, Math.Min(99.9, eOffsetPct));
+        exhaustTextOffset = eOffsetPct.ToString(System.Globalization.CultureInfo.InvariantCulture) + "%";
+    }
+
+    private string BuildSvgArc(double x, double y, double r, double startAngleInDegrees, double endAngleInDegrees)
+    {
+        double diff = endAngleInDegrees - startAngleInDegrees;
+        if (diff <= 0) return "";
+        var s = PolarToCartesian(x, y, r, startAngleInDegrees);
+        var e = PolarToCartesian(x, y, r, endAngleInDegrees);
+        var format = System.Globalization.CultureInfo.InvariantCulture;
+        return $"M {s.X.ToString(format)} {s.Y.ToString(format)} A {r} {r} 0 {(diff > 180 ? 1 : 0)} 1 {e.X.ToString(format)} {e.Y.ToString(format)}";
+    }
+
+    private string BuildCounterClockwiseSvgArc(double x, double y, double r, double startAngleInDegrees, double endAngleInDegrees)
+    {
+        double diff = endAngleInDegrees - startAngleInDegrees;
+        if (diff <= 0) return "";
+        var s = PolarToCartesian(x, y, r, endAngleInDegrees); 
+        var e = PolarToCartesian(x, y, r, startAngleInDegrees); 
+        var format = System.Globalization.CultureInfo.InvariantCulture;
+        return $"M {s.X.ToString(format)} {s.Y.ToString(format)} A {r} {r} 0 {(diff > 180 ? 1 : 0)} 0 {e.X.ToString(format)} {e.Y.ToString(format)}";
+    }
+
+    private (double X, double Y) PolarToCartesian(double centerX, double centerY, double radius, double angleInDegrees)
+    {
+        double angleInRadians = (angleInDegrees - 90.0) * Math.PI / 180.0;
+        return (centerX + (radius * Math.Cos(angleInRadians)), centerY + (radius * Math.Sin(angleInRadians)));
+    }
+
+    /// <summary>
+    /// Salva i dati validati.
+    /// </summary>
+    private async Task SaveProfileData()
+    {
+        if (string.IsNullOrWhiteSpace(currentProfile.Name))
+        {
+            currentProfile.Name = $"Profile {DateTime.Now:HH:mm}";
+        }
+
+        var existingProfiles = await Storage.GetAllProfilesAsync();
+        if (existingProfiles.Any(p => p.Name.Equals(currentProfile.Name, StringComparison.OrdinalIgnoreCase)))
+        {
+            ShowAlert("Error: A profile with this name already exists!", true);
+            await SafeScrollToBottom(); 
+            return;
+        }
+
+        currentProfile.CreatedAt = DateTime.Now;
+        await Storage.SaveProfileAsync(currentProfile);
+        
+        displayProfileName = currentProfile.Name;
+        displayProfileNotes = currentProfile.Notes;
+
+        currentProfile.Name = "";
+        currentProfile.Notes = "";
+        
+        ShowAlert("Profile saved successfully!", false);
+        await SafeScrollToBottom(); 
+    }
+
+    private void ShowAlert(string message, bool isError)
+    {
+        alertMessage = message;
+        isErrorAlert = isError;
+        StateHasChanged(); 
+    }
+
+    private void DismissAlert()
+    {
+        alertMessage = "";
+        StateHasChanged(); 
+    }
+
+    private async Task OpenArchive()
+    {
+        isArchiveOpen = true; 
+        savedProfiles = null; 
+        StateHasChanged(); 
+        
+        var profiles = await Storage.GetAllProfilesAsync();
+        savedProfiles = profiles?.ToList() ?? new List<CamshaftProfile>();
+    }
+
+    private void CloseArchive()
+    {
+        isArchiveOpen = false;
+    }
+
+    /// <summary>
+    /// Carica le coordinate di un file JSON sul grafico senza auto-salvarlo.
+    /// </summary>
+    /// <param name="selectedProfile">Il profilo proveniente dall'archivio salvato in precedenza.</param>
+    private async Task LoadProfile(CamshaftProfile selectedProfile)
+    {
+        currentProfile = new CamshaftProfile
+        {
+            Id = selectedProfile.Id,
+            IntakeOpensBtdc = selectedProfile.IntakeOpensBtdc,
+            IntakeClosesAbdc = selectedProfile.IntakeClosesAbdc,
+            ExhaustOpensBbdc = selectedProfile.ExhaustOpensBbdc,
+            ExhaustClosesAtdc = selectedProfile.ExhaustClosesAtdc,
+            Name = "",
+            Notes = ""
+        };
+
+        displayProfileName = selectedProfile.Name;
+        displayProfileNotes = selectedProfile.Notes;
+
+        CloseArchive();
+        await ExecuteAnalysis();
+    }
+}

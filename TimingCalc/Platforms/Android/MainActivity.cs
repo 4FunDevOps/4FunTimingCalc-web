@@ -1,5 +1,4 @@
-﻿// File: Platforms/Android/MainActivity.cs
-using Android.App;
+﻿using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
@@ -9,9 +8,10 @@ using TimingCalc.Core.Services;
 
 namespace TimingCalc
 {
-    [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true,
-        LaunchMode = LaunchMode.SingleTop, // CRITICO: Evita cloni dell'app
-        ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
+    [Activity(Theme = "@style/Maui.SplashTheme",
+              MainLauncher = true,
+              LaunchMode = LaunchMode.SingleTop, // CRITICO: Evita cloni dell'app
+              ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
 
     // Filtro 1: Link standard web 
     [IntentFilter(new[] { Intent.ActionView },
@@ -50,7 +50,7 @@ namespace TimingCalc
         /// <summary>
         /// Estrae l'URI dall'Intent e lo passa al servizio Blazor in modo sicuro.
         /// </summary>
-        /// <param name="intent">L'oggetto Intent fornito dal sistema operativo Android.</param>
+        /// <param name="intent">L'oggetto Intent fornito dal sistema operativo Android (può essere null).</param>
         private void ProcessIntent(Intent? intent)
         {
             if (intent?.Action == Intent.ActionView && intent.Data != null)

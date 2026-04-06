@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TimingCalc - Shared Profile</title>
+    <title>Profilo TimingCalc Condiviso</title>
     <style>
         body {
             background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -30,64 +30,87 @@
             width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px auto;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Classe per nascondere il bottone di download su PC */
+        .hide-on-desktop { display: none; }
+        @media (max-width: 1024px) {
+            .hide-on-desktop { display: inline-block; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div id="loadingSection">
             <div class="loader"></div>
-            <h1>Opening TimingCalc...</h1>
-            <p>If the app is installed on your device, it will open automatically in a moment.</p>
+            <h1>Apertura di TimingCalc...</h1>
+            <p>Se l'app è installata sul tuo dispositivo, si aprirà automaticamente tra un istante.</p>
         </div>
 
         <div id="fallbackSection" style="display: none;">
-            <h1>App Not Found</h1>
-            <p>It looks like the app isn't installed, or your browser blocked the automatic redirect.</p>
+            <h1>App non trovata</h1>
+            <p>Sembra che tu non abbia l'app installata o che il tuo browser ne abbia bloccato l'apertura automatica.</p>
             
             <a href="#" id="manualOpenBtn" class="btn">
-                TRY OPENING APP AGAIN
+                RIPROVA AD APRIRE L'APP
             </a>
             
-            <a href="./TimingCalc.apk" download class="btn btn-download">
-                DOWNLOAD APP (APK)
+            <a href="./4FunTimingCalc.apk" download class="btn btn-download hide-on-desktop" id="downloadBtn">
+                SCARICA L'APP (APK)
             </a>
+            
+            <p id="pcMessage" style="display: none; font-size: 0.85rem; margin-top: 15px;">
+                I file APK funzionano solo su dispositivi Android. Apri questo link dal tuo smartphone per installare l'app.
+            </p>
         </div>
     </div>
 
     <script>
-        // 1. Recuperiamo le coordinate condivise
+        // 1. Recuperiamo i parametri dall'URL condiviso
         const queryString = window.location.search;
         const appLink = "timingcalc://share" + queryString;
 
-        // 2. Il "Trucco dell'iFrame" per bypassare gli errori di Chrome
+        // 2. Controllo se siamo su PC (per nascondere il bottone APK)
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        // 3. Il "Trucco dell'iFrame" per aprire l'app senza causare l'errore di Chrome
         function tryOpenAppSilently() {
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             iframe.src = appLink;
             document.body.appendChild(iframe);
             
-            // Puliamo l'iframe dopo un po' per non sporcare la pagina
+            // Puliamo l'iframe dopo un secondo
             setTimeout(() => {
-                document.body.removeChild(iframe);
+                if(document.body.contains(iframe)) {
+                    document.body.removeChild(iframe);
+                }
             }, 1000);
         }
 
-        // 3. Cosa succede appena la pagina si apre
         window.onload = function() {
-            // Proviamo ad aprire l'app silenziosamente
+            // Selezioniamo gli elementi per mostrare/nascondere roba specifica per PC
+            if (!isMobileDevice()) {
+                document.getElementById('downloadBtn').style.display = 'none';
+                document.getElementById('pcMessage').style.display = 'block';
+                document.querySelector('#fallbackSection p').innerText = "Stai usando un computer. Questa è un'applicazione per smartphone.";
+            }
+
+            // Proviamo ad aprire l'app in modo "silenzioso"
             tryOpenAppSilently();
 
-            // Dopo 2.5 secondi, mostriamo il fallback
+            // Dopo 2.5 secondi, mostriamo il menu con i pulsanti "Riprova" o "Scarica"
             setTimeout(function() {
                 document.getElementById('loadingSection').style.display = 'none';
                 document.getElementById('fallbackSection').style.display = 'block';
             }, 2500);
         };
 
-        // 4. Se l'utente clicca manualmente "Riprova"
+        // Gestione del pulsante "Riprova"
         document.getElementById('manualOpenBtn').onclick = function(e) {
             e.preventDefault();
-            // Al click manuale l'errore del browser è tollerato perché voluto dall'utente
+            // In questo caso forziamo il reindirizzamento visibile
             window.location.href = appLink; 
         };
     </script>

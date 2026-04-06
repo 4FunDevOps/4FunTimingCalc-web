@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profilo TimingCalc Condiviso</title>
+    <title>Shared TimingCalc Profile</title>
     <style>
         body {
             background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -31,7 +31,7 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* Classe per nascondere il bottone di download su PC */
+        /* Class to hide the download button on PC */
         .hide-on-desktop { display: none; }
         @media (max-width: 1024px) {
             .hide-on-desktop { display: inline-block; }
@@ -42,46 +42,46 @@
     <div class="container">
         <div id="loadingSection">
             <div class="loader"></div>
-            <h1>Apertura di TimingCalc...</h1>
-            <p>Se l'app è installata sul tuo dispositivo, si aprirà automaticamente tra un istante.</p>
+            <h1>Opening Cam Profile...</h1>
+            <p>If TimingCalc is installed on your phone, the profile will load in a moment.</p>
         </div>
 
         <div id="fallbackSection" style="display: none;">
-            <h1>App non trovata</h1>
-            <p>Sembra che tu non abbia l'app installata o che il tuo browser ne abbia bloccato l'apertura automatica.</p>
+            <h1>App Not Found</h1>
+            <p>You don't have the app installed, or your browser blocked it from opening automatically.</p>
             
             <a href="#" id="manualOpenBtn" class="btn">
-                RIPROVA AD APRIRE L'APP
+                TRY OPENING THE APP AGAIN
             </a>
             
             <a href="./4FunTimingCalc.apk" download class="btn btn-download hide-on-desktop" id="downloadBtn">
-                SCARICA L'APP (APK)
+                DOWNLOAD THE APP (Android APK)
             </a>
             
-            <p id="pcMessage" style="display: none; font-size: 0.85rem; margin-top: 15px;">
-                I file APK funzionano solo su dispositivi Android. Apri questo link dal tuo smartphone per installare l'app.
+            <p id="pcMessage" style="display: none; font-size: 0.85rem; margin-top: 15px; color: #ff9800;">
+                APK files only work on Android smartphones. Open this link from your phone to use the calculator.
             </p>
         </div>
     </div>
 
     <script>
-        // 1. Recuperiamo i parametri dall'URL condiviso
+        // 1. Get parameters from shared URL
         const queryString = window.location.search;
         const appLink = "timingcalc://share" + queryString;
 
-        // 2. Controllo se siamo su PC (per nascondere il bottone APK)
+        // 2. Check if we are on a mobile device
         function isMobileDevice() {
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
 
-        // 3. Il "Trucco dell'iFrame" per aprire l'app senza causare l'errore di Chrome
+        // 3. The "iFrame Trick" to open the app silently without triggering Chrome errors
         function tryOpenAppSilently() {
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             iframe.src = appLink;
             document.body.appendChild(iframe);
             
-            // Puliamo l'iframe dopo un secondo
+            // Clean up the iframe after 1 second
             setTimeout(() => {
                 if(document.body.contains(iframe)) {
                     document.body.removeChild(iframe);
@@ -90,27 +90,27 @@
         }
 
         window.onload = function() {
-            // Selezioniamo gli elementi per mostrare/nascondere roba specifica per PC
+            // Adjust texts if the user opens the link on a computer
             if (!isMobileDevice()) {
                 document.getElementById('downloadBtn').style.display = 'none';
                 document.getElementById('pcMessage').style.display = 'block';
-                document.querySelector('#fallbackSection p').innerText = "Stai usando un computer. Questa è un'applicazione per smartphone.";
+                document.querySelector('#fallbackSection p').innerText = "You are using a computer. This calculator is designed to be used on mobile devices.";
             }
 
-            // Proviamo ad aprire l'app in modo "silenzioso"
+            // Try to open the app silently
             tryOpenAppSilently();
 
-            // Dopo 2.5 secondi, mostriamo il menu con i pulsanti "Riprova" o "Scarica"
+            // After 2.5 seconds, show the menu
             setTimeout(function() {
                 document.getElementById('loadingSection').style.display = 'none';
                 document.getElementById('fallbackSection').style.display = 'block';
             }, 2500);
         };
 
-        // Gestione del pulsante "Riprova"
+        // "Try again" button handler
         document.getElementById('manualOpenBtn').onclick = function(e) {
             e.preventDefault();
-            // In questo caso forziamo il reindirizzamento visibile
+            // On manual click, browser error is tolerated because it's user-initiated
             window.location.href = appLink; 
         };
     </script>

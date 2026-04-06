@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TimingCalc Profile Shared</title>
+    <title>TimingCalc - Shared Profile</title>
     <style>
         body {
             background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -37,37 +37,58 @@
         <div id="loadingSection">
             <div class="loader"></div>
             <h1>Opening TimingCalc...</h1>
-            <p>Se l'app è installata sul tuo dispositivo, si aprirà automaticamente tra un istante.</p>
+            <p>If the app is installed on your device, it will open automatically in a moment.</p>
         </div>
 
         <div id="fallbackSection" style="display: none;">
-            <h1>App non trovata</h1>
-            <p>Sembra che tu non abbia l'app installata o il dispositivo ha bloccato l'apertura.</p>
+            <h1>App Not Found</h1>
+            <p>It looks like the app isn't installed, or your browser blocked the automatic redirect.</p>
+            
             <a href="#" id="manualOpenBtn" class="btn">
-                RIPROVA AD APRIRE L'APP
+                TRY OPENING APP AGAIN
             </a>
-            <a href="TimingCalc.apk" download class="btn btn-download">
-                SCARICA L'APP (APK)
+            
+            <a href="./TimingCalc.apk" download class="btn btn-download">
+                DOWNLOAD APP (APK)
             </a>
         </div>
     </div>
 
     <script>
+        // 1. Recuperiamo le coordinate condivise
         const queryString = window.location.search;
         const appLink = "timingcalc://share" + queryString;
 
-        window.onload = function() {
-            window.location.href = appLink;
+        // 2. Il "Trucco dell'iFrame" per bypassare gli errori di Chrome
+        function tryOpenAppSilently() {
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = appLink;
+            document.body.appendChild(iframe);
+            
+            // Puliamo l'iframe dopo un po' per non sporcare la pagina
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+            }, 1000);
+        }
 
+        // 3. Cosa succede appena la pagina si apre
+        window.onload = function() {
+            // Proviamo ad aprire l'app silenziosamente
+            tryOpenAppSilently();
+
+            // Dopo 2.5 secondi, mostriamo il fallback
             setTimeout(function() {
                 document.getElementById('loadingSection').style.display = 'none';
                 document.getElementById('fallbackSection').style.display = 'block';
             }, 2500);
         };
 
+        // 4. Se l'utente clicca manualmente "Riprova"
         document.getElementById('manualOpenBtn').onclick = function(e) {
             e.preventDefault();
-            window.location.href = appLink;
+            // Al click manuale l'errore del browser è tollerato perché voluto dall'utente
+            window.location.href = appLink; 
         };
     </script>
 </body>

@@ -23,5 +23,13 @@ namespace TimingCalc.Core.Interfaces
         /// </summary>
         /// <returns>Lista dei profili disponibili.</returns>
         Task<List<CamshaftProfile>> GetAllProfilesAsync();
+
+        /// <summary>
+        /// Elimina un profilo specifico in modo asincrono dal dispositivo.
+        /// </summary>
+        /// <param name="profileName">Il nome del profilo da eliminare.</param>
+        /// <returns>Un Task che rappresenta l'operazione di eliminazione asincrona.</returns>
+        Task DeleteProfileAsync(string profileName);
+
     }
 }

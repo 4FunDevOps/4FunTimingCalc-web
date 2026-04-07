@@ -99,5 +99,32 @@ namespace TimingCalc.Infrastructure.Storage
 
             return Task.FromResult(profiles);
         }
+
+        /// <summary>
+        /// Elimina fisicamente il file JSON associato al profilo specificato.
+        /// </summary>
+        /// <param name="profileName">Il nome del profilo da eliminare (verrà sanitizzato prima della ricerca).</param>
+        /// <returns>Un Task che rappresenta l'operazione asincrona di eliminazione.</returns>
+        /// <exception cref="InvalidOperationException">Lanciata se l'eliminazione del file fallisce per problemi di accesso o di I/O.</exception>
+        public Task DeleteProfileAsync(string profileName)
+        {
+            try
+            {
+                string safeName = string.Join("_", profileName.Split(Path.GetInvalidFileNameChars()));
+                string fileName = $"{safeName}.json";
+                string fullPath = Path.Combine(_folderPath, fileName);
+
+                if (File.Exists(fullPath))
+                {
+                    File.Delete(fullPath);
+                }
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting file: {ex.Message}");
+                throw new InvalidOperationException("Could not delete the profile file.", ex);
+            }
+        }
     }
 }

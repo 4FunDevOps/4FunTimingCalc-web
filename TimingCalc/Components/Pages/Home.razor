@@ -3,6 +3,7 @@
 @using TimingCalc.Core.Entities
 @using TimingCalc.Core.Interfaces
 @using TimingCalc.Core.Services
+@using CommunityToolkit.Maui.Storage
 @inject ICamshaftCalculatorService Calculator
 @inject IStorageService Storage
 @inject IJSRuntime JS
@@ -10,6 +11,33 @@
 @implements IDisposable
 
 <div class="app-container" style="opacity: @(isThemeLoaded ? 1 : 0); transition: opacity 0.3s ease;">
+
+    @* --- OVERLAY POPUP (Beta & Updates) --- *@
+    @if (showBetaPopup || showUpdatePopup)
+    {
+        <div class="archive-modal-overlay" style="z-index: 2000;">
+            <div class="archive-modal-content text-center p-4">
+                @if (showUpdatePopup)
+                {
+                    <i class="bi bi-cloud-arrow-down-fill text-primary" style="font-size: 3rem;"></i>
+                    <h4 class="mt-3 fw-bold">Update Available</h4>
+                    <p class="text-muted mt-2">@updateMessage</p>
+                    <div class="d-flex gap-2 mt-4">
+                        <button class="btn btn-outline-secondary w-50 fw-bold" @onclick="() => showUpdatePopup = false">Later</button>
+                        <a href="@updateUrl" target="_blank" class="btn btn-primary w-50 fw-bold">Download Now</a>
+                    </div>
+                }
+                else if (showBetaPopup)
+                {
+                    <i class="bi bi-tools text-warning" style="font-size: 3rem;"></i>
+                    <h4 class="mt-3 fw-bold">Welcome to the Beta!</h4>
+                    <p class="text-muted mt-2">This is a test version (Beta). The official version will be released on the stores soon. Your saved profiles will remain safe!</p>
+                    <button class="btn btn-warning w-100 fw-bold mt-3" @onclick="CloseBetaPopup">Got it</button>
+                }
+            </div>
+        </div>
+    }
+
     @* --- Header Bar --- *@
     <div class="header-bar d-flex justify-content-between align-items-center mb-4 gap-2">
         <div class="d-flex align-items-center gap-2">
@@ -89,56 +117,58 @@
         }
     </div>
 
-    @* --- Input Dati --- *@
+   @* --- Input Dati --- *@
     <div class="inputs-area mb-4">
         <div class="row g-3">
             <div class="col-md-6 col-12">
                 <div class="input-group-custom">
                     <label>Intake Opens (BTDC)</label>
-                    <input type="number" @bind="currentProfile.IntakeOpensBtdc" placeholder="--" onfocus="this.select()" />
+                    <input type="number" tabindex="1" @bind="currentProfile.IntakeOpensBtdc" placeholder="--" onfocus="this.select()" />
                 </div>
             </div>
             <div class="col-md-6 col-12">
                 <div class="input-group-custom">
                     <label>Intake Closes (ABDC)</label>
-                    <input type="number" @bind="currentProfile.IntakeClosesAbdc" placeholder="--" onfocus="this.select()" />
+                    <input type="number" tabindex="2" @bind="currentProfile.IntakeClosesAbdc" placeholder="--" onfocus="this.select()" />
                 </div>
             </div>
             <div class="col-md-6 col-12">
                 <div class="input-group-custom">
                     <label>Exhaust Opens (BBDC)</label>
-                    <input type="number" @bind="currentProfile.ExhaustOpensBbdc" placeholder="--" onfocus="this.select()" />
+                    <input type="number" tabindex="3" @bind="currentProfile.ExhaustOpensBbdc" placeholder="--" onfocus="this.select()" />
                 </div>
             </div>
             <div class="col-md-6 col-12">
                 <div class="input-group-custom">
                     <label>Exhaust Closes (ATDC)</label>
-                    <input type="number" @bind="currentProfile.ExhaustClosesAtdc" placeholder="--" onfocus="this.select()" />
+                    <input type="number" tabindex="4" @bind="currentProfile.ExhaustClosesAtdc" placeholder="--" onfocus="this.select()" />
                 </div>
             </div>
         </div>
 
-        @if (isCalculated)
+       @if (isCalculated)
         {
             <div class="d-flex gap-2 mt-3">
-                <button class="btn btn-outline-info flex-grow-1 fw-bold py-2" @onclick="ShareProfile">
+                <button class="btn btn-outline-info flex-grow-1 fw-bold py-2" tabindex="7" @onclick="ShareProfile">
                     <i class="bi bi-share-fill me-1"></i> SHARE
                 </button>
-                <button class="btn btn-outline-danger flex-grow-1 fw-bold py-2" @onclick="ClearSession">
+                <button class="btn btn-outline-danger flex-grow-1 fw-bold py-2" tabindex="6" @onclick="ClearSession">
                     <i class="bi bi-trash3-fill me-1"></i> CLEAR
                 </button>
-                <button class="btn run-btn flex-grow-1 fw-bold py-2 m-0" style="height: auto;" @onclick="ExecuteAnalysis">
+                <button class="btn run-btn flex-grow-1 fw-bold py-2 m-0" tabindex="5" style="height: auto;" @onclick="ExecuteAnalysis">
                     <i class="bi bi-arrow-clockwise me-1"></i> RE-CALC
                 </button>
             </div>
         }
         else
         {
-            <button class="btn w-100 mt-3 fw-bold run-btn" @onclick="ExecuteAnalysis">
+            <button class="btn w-100 mt-3 fw-bold run-btn" tabindex="5" @onclick="ExecuteAnalysis">
                 <i class="bi bi-cpu me-2"></i> EXECUTE ANALYSIS
             </button>
         }
+
     </div>
+</div>
 
     @* --- Salvataggio Dati --- *@
     <div class="save-area p-4 rounded mb-4" id="saveArea" style="background-color: var(--bg-save);">
@@ -188,13 +218,39 @@
     {
         <div class="archive-modal-overlay" @onclick="CloseArchive">
             <div class="archive-modal-content" @onclick:stopPropagation="true">
-                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2 border-secondary">
+                
+                @* Intestazione *@
+                <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 border-secondary">
                     <h5 class="m-0" style="color: var(--text-main);"><i class="bi bi-folder-fill me-2 text-warning"></i> Saved Profiles</h5>
                     <button class="btn btn-sm btn-outline-secondary border-0" style="color: var(--text-main);" @onclick="CloseArchive">
                         <i class="bi bi-x-lg fs-5"></i>
                     </button>
                 </div>
 
+                @* Messaggio di sicurezza chiudibile *@
+                @if (showSafetyNote)
+                {
+                    <div class="alert py-2 px-3 mb-3 border-0 position-relative shadow-sm" style="font-size: 0.8rem; background-color: #fff3cd; color: #664d03; border-radius: 8px;">
+                        <button type="button" class="btn-close position-absolute top-0 end-0 p-2" style="font-size: 0.6rem;" aria-label="Close" @onclick="DismissSafetyNote"></button>
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>SAFETY NOTE:</strong> Uninstalling the app will delete all local data. Please <strong>Export All</strong> your profiles to keep a backup.
+                        <div class="mt-1 text-end" style="font-size: 0.7rem; text-decoration: underline; cursor: pointer; opacity: 0.8;" @onclick="DismissSafetyNote">
+                            Do not show this message again
+                        </div>
+                    </div>
+                }
+
+                @* Bottoni Import/Export Globale *@
+                <div class="d-flex gap-2 mb-3">
+                    <button class="btn btn-primary btn-sm flex-grow-1 fw-bold" @onclick="ImportProfile">
+                        <i class="bi bi-file-earmark-arrow-up me-2"></i> IMPORT
+                    </button>
+                    <button class="btn btn-warning btn-sm flex-grow-1 fw-bold" @onclick="ExportAllProfiles">
+                        <i class="bi bi-file-earmark-zip me-2"></i> EXPORT ALL
+                    </button>
+                </div>
+
+                @* Gestione Stati di Caricamento *@
                 @if (savedProfiles == null)
                 {
                     <div class="text-center py-4" style="color: var(--text-muted);">Loading files...</div>
@@ -205,22 +261,37 @@
                 }
                 else
                 {
+                    @* Lista dei Profili *@
                     <div class="list-group list-group-flush archive-list">
                         @foreach (var profile in savedProfiles.OrderByDescending(p => p.CreatedAt))
                         {
-                            <div class="list-group-item border-secondary p-2 archive-item mb-2" 
-                                 @onclick="() => LoadProfile(profile)">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <strong class="fs-5" style="color: var(--text-main);">@profile.Name</strong>
-                                    <small style="color: var(--text-muted); font-size: 0.75rem;">@profile.CreatedAt.ToString("MMM dd, yyyy")</small>
+                            <div class="list-group-item border-secondary p-3 archive-item mb-2">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    
+                                    @* Area Cliccabile: Carica il profilo *@
+                                    <div @onclick="() => LoadProfile(profile)" style="flex-grow: 1; cursor: pointer;">
+                                        <strong class="fs-5 d-block" style="color: var(--text-main);">@profile.Name</strong>
+                                        <small style="color: var(--text-muted); font-size: 0.75rem;">@profile.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                        
+                                        @if (!string.IsNullOrEmpty(profile.Notes))
+                                        {
+                                            <div class="small mt-1 mb-1 text-truncate" style="max-width: 250px; color: var(--text-muted);">@profile.Notes</div>
+                                        }
+                                    </div>
+
+                                    @* Bottoni Azione (Esporta singolo e Elimina) *@
+                                    <div class="d-flex gap-1 ms-2">
+                                        <button class="btn btn-sm btn-outline-info border-0" @onclick="() => ExportProfile(profile)" title="Export Profile">
+                                            <i class="bi bi-download"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger border-0" @onclick="() => DeleteProfile(profile)" title="Delete Profile">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                                
-                                @if (!string.IsNullOrEmpty(profile.Notes))
-                                {
-                                    <div class="small mt-1 mb-2 text-truncate" style="color: var(--text-muted);">@profile.Notes</div>
-                                }
-                                
-                                <div class="mt-1 d-flex gap-2" style="font-size: 0.75rem;">
+
+                                @* Badge Dati *@
+                                <div class="mt-2 d-flex gap-2 flex-wrap" style="font-size: 0.75rem;">
                                     <span class="badge bg-dark border border-secondary text-light">DUR IN: @Calculator.CalculateIntakeDuration(profile)°</span>
                                     <span class="badge bg-dark border border-secondary text-light">DUR EX: @Calculator.CalculateExhaustDuration(profile)°</span>
                                     <span class="badge bg-dark border border-warning text-warning">OVERLAP: @Calculator.CalculateOverlap(profile)°</span>
@@ -232,7 +303,7 @@
             </div>
         </div>
     }
-</div>
+
 
 <style>
     /* VARIABILI CSS DINAMICHE PER TEMA CHIARO E SCURO */
@@ -381,6 +452,11 @@
     .archive-list { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
     .archive-item { background-color: var(--bg-archive-item) !important; cursor: pointer; border-radius: 8px !important; border: 1px solid var(--border-color) !important; transition: 0.2s; }
     .archive-item:hover { background-color: var(--hover-archive) !important; }
+
+    /* Testo del popup sempre bianco per essere visibile sul grigio */
+    .archive-modal-content h4,
+    .archive-modal-content p {
+        color: #ffffff !important;}
 </style>
 
 @code {
@@ -404,14 +480,50 @@
     private bool isDarkMode = true;
     private bool isThemeLoaded = false;
 
+    // Variabili per i Popup
+    private bool showBetaPopup = false;
+    private bool showUpdatePopup = false;
+    private string updateMessage = "";
+    private string updateUrl = "";
+    private bool showSafetyNote = true;
+    
+    // La versione attuale dell'app (cambiala quando fai un nuovo APK)
+    private string currentAppVersion = "1.0.0";
+
+// Funzione per nascondere definitivamente l'avviso giallo nell'archivio
+    private void DismissSafetyNote()
+    {
+        Microsoft.Maui.Storage.Preferences.Default.Set("HideSafetyNote", true);
+        showSafetyNote = false;
+    }
+
     protected override void OnInitialized()
     {
+        // 1. Inizializzazione Deep Link esistente
         DeepLink.OnLinkReceived += HandleDeepLink;
         if (DeepLink.PendingUri != null)
         {
             HandleDeepLink(DeepLink.PendingUri);
             DeepLink.PendingUri = null;
         }
+
+        // 2. Controllo Popup Beta 
+        // TEMPORANEO: Rimuoviamo la preferenza per forzare il popup ad apparire ad ogni avvio per i tuoi test.
+        //Microsoft.Maui.Storage.Preferences.Default.Remove("HasSeenBeta");
+
+        if (!Microsoft.Maui.Storage.Preferences.Default.ContainsKey("HasSeenBeta"))
+        {
+            showBetaPopup = true;
+        }
+
+        // 3. Controllo Safety Note
+        if (Microsoft.Maui.Storage.Preferences.Default.ContainsKey("HideSafetyNote"))
+        {
+            showSafetyNote = false;
+        }
+
+        // 4. Controllo Aggiornamenti silente
+        _ = CheckForUpdatesAsync(); 
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -605,28 +717,44 @@
 
     private async Task SaveProfileData()
     {
-        if (string.IsNullOrWhiteSpace(currentProfile.Name))
+        // 1. Rimuove gli spazi vuoti accidentali all'inizio e alla fine
+        var cleanName = currentProfile.Name?.Trim();
+
+        // 2. Assegna un nome di default se il campo è vuoto
+        if (string.IsNullOrWhiteSpace(cleanName))
         {
-            currentProfile.Name = $"Profile {DateTime.Now:HH:mm}";
+            cleanName = $"Profile {DateTime.Now:HH:mm}";
         }
 
+        // 3. Recupera i profili esistenti per il controllo dei duplicati
         var existingProfiles = await Storage.GetAllProfilesAsync();
-        if (existingProfiles.Any(p => p.Name.Equals(currentProfile.Name, StringComparison.OrdinalIgnoreCase)))
+        var profileList = existingProfiles?.ToList() ?? new List<CamshaftProfile>();
+
+        // 4. Controllo duplicati sicuro: ignora maiuscole/minuscole e spazi extra
+        if (profileList.Any(p => !string.IsNullOrWhiteSpace(p.Name) && 
+                                 p.Name.Trim().Equals(cleanName, StringComparison.OrdinalIgnoreCase)))
         {
+            // Mostra l'errore in rosso (true) nella stessa posizione del successo
             ShowAlert("Error: A profile with this name already exists!", true);
             await SafeScrollToBottom(); 
             return;
         }
 
+        // 5. Prepara i dati per il salvataggio
+        currentProfile.Name = cleanName;
         currentProfile.CreatedAt = DateTime.Now;
+        
         await Storage.SaveProfileAsync(currentProfile);
         
+        // 6. Aggiorna l'interfaccia visiva con il nuovo nome
         displayProfileName = currentProfile.Name;
         displayProfileNotes = currentProfile.Notes;
 
+        // 7. Svuota solo i campi di input per il prossimo utilizzo
         currentProfile.Name = "";
         currentProfile.Notes = "";
         
+        // Mostra il messaggio di successo in verde (false)
         ShowAlert("Profile saved successfully!", false);
         await SafeScrollToBottom(); 
     }
@@ -677,5 +805,222 @@
 
         CloseArchive();
         await ExecuteAnalysis();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Controllo Deep Link esistente...
+        DeepLink.OnLinkReceived += HandleDeepLink;
+        if (DeepLink.PendingUri != null)
+        {
+            HandleDeepLink(DeepLink.PendingUri);
+            DeepLink.PendingUri = null;
+        }
+
+        // 1. Controllo Popup Beta (usa la memoria del telefono tramite MAUI Preferences)
+        if (!Microsoft.Maui.Storage.Preferences.Default.ContainsKey("HasSeenBeta"))
+        {
+            showBetaPopup = true;
+        }
+
+        // 2. Controllo Aggiornamenti da GitHub (Invisibile e sicuro)
+        _ = CheckForUpdatesAsync(); 
+    }
+
+    private void CloseBetaPopup()
+    {
+        // Salva la preferenza: non lo mostrerà mai più
+        Microsoft.Maui.Storage.Preferences.Default.Set("HasSeenBeta", true);
+        showBetaPopup = false;
+    }
+
+    private async Task CheckForUpdatesAsync()
+    {
+        try
+        {
+            using var client = new System.Net.Http.HttpClient();
+            client.Timeout = TimeSpan.FromSeconds(5); // Non blocca l'app se c'è poca linea
+            
+            // Scarica il file dal tuo GitHub
+            string jsonUrl = "https://4fundevops.github.io/4FunTimingCalc-web/version.json";
+            string jsonResponse = await client.GetStringAsync(jsonUrl);
+            
+            // Estrapola i dati (metodo rapido senza creare classi extra)
+            using var doc = System.Text.Json.JsonDocument.Parse(jsonResponse);
+            string latestVersion = doc.RootElement.GetProperty("latestVersion").GetString() ?? "1.0.0";
+            
+            // Se la versione su GitHub è diversa da quella dell'app, mostra il popup
+            if (latestVersion != currentAppVersion)
+            {
+                updateMessage = doc.RootElement.GetProperty("updateMessage").GetString() ?? "Nuovo aggiornamento!";
+                updateUrl = doc.RootElement.GetProperty("storeUrl").GetString() ?? jsonUrl;
+                showUpdatePopup = true;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch 
+        { 
+            // Se non c'è internet o il file non esiste, l'app fa finta di niente e funziona normalmente
+        }
+    }
+
+    // Importa un profilo da un file JSON esterno
+    // Importazione Intelligente (Singolo file o Backup Globale)
+    // Importazione Intelligente (A prova di Crash)
+    private async Task ImportProfile()
+    {
+        try
+        {
+            // Rimuoviamo il customFileType che causa il crash su emulatore.
+            // Lasciamo che l'utente scelga un file liberamente.
+            var result = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "Select a Camshaft Profile backup (.json)"
+            });
+
+            if (result == null) return; 
+
+            // Validazione manuale dell'estensione (100% sicura)
+            if (!result.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            {
+                ShowAlert("Please select a valid .json backup file.", true);
+                return;
+            }
+
+            using var stream = await result.OpenReadAsync();
+            using var reader = new StreamReader(stream);
+            var jsonContent = await reader.ReadToEndAsync();
+
+            List<CamshaftProfile> profilesToImport = new List<CamshaftProfile>();
+
+            // 1. TENTA COME BACKUP GLOBALE (Una lista di profili)
+            try 
+            {
+                profilesToImport = System.Text.Json.JsonSerializer.Deserialize<List<CamshaftProfile>>(jsonContent) ?? new List<CamshaftProfile>();
+            }
+            catch
+            {
+                // 2. SE FALLISCE, TENTA COME PROFILO SINGOLO
+                var singleProfile = System.Text.Json.JsonSerializer.Deserialize<CamshaftProfile>(jsonContent);
+                if (singleProfile != null) profilesToImport.Add(singleProfile);
+            }
+
+            if (!profilesToImport.Any())
+            {
+                ShowAlert("Error: Invalid or corrupted backup file.", true);
+                return;
+            }
+
+            // 3. SALVA TUTTI I PROFILI TROVATI
+            var existingProfiles = await Storage.GetAllProfilesAsync();
+            int importCount = 0;
+
+            foreach (var profile in profilesToImport)
+            {
+                if (string.IsNullOrWhiteSpace(profile.Name)) continue;
+
+                if (existingProfiles.Any(p => p.Name.Trim().Equals(profile.Name.Trim(), StringComparison.OrdinalIgnoreCase)))
+                {
+                    profile.Name += "_Imported_" + DateTime.Now.ToString("HHmmss");
+                }
+
+                await Storage.SaveProfileAsync(profile);
+                importCount++;
+            }
+            
+            // 4. AGGIORNA LA UI
+            var updatedList = await Storage.GetAllProfilesAsync();
+            savedProfiles = updatedList?.ToList() ?? new List<CamshaftProfile>();
+            
+            ShowAlert($"Successfully imported {importCount} profile(s)!", false);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            ShowAlert($"Import failed: {ex.Message}", true);
+        }
+    }
+
+    // Elimina un profilo dal disco
+    private async Task DeleteProfile(CamshaftProfile profile)
+    {
+        // Chiediamo una conferma veloce tramite JS nativo
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete '{profile.Name}'?");
+        if (!confirmed) return;
+
+        try 
+        {
+            await Storage.DeleteProfileAsync(profile.Name);
+            
+            // Ricarichiamo la lista aggiornata
+            var profiles = await Storage.GetAllProfilesAsync();
+            savedProfiles = profiles?.ToList() ?? new List<CamshaftProfile>();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            ShowAlert($"Error deleting profile: {ex.Message}", true);
+        }
+    }
+
+    // Esporta il profilo come file JSON condivisibile
+    private async Task ExportProfile(CamshaftProfile profile)
+    {
+        try
+        {
+            // Creiamo il contenuto JSON
+            string json = System.Text.Json.JsonSerializer.Serialize(profile, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            
+            // Creiamo un file temporaneo nella cache del dispositivo
+            string fileName = $"{profile.Name.Replace(" ", "_")}_backup.json";
+            string tempFile = Path.Combine(FileSystem.CacheDirectory, fileName);
+            await File.WriteAllTextAsync(tempFile, json);
+
+            // Usiamo l'API di Share di MAUI per inviare il file al sistema operativo
+            await Microsoft.Maui.ApplicationModel.DataTransfer.Share.RequestAsync(new Microsoft.Maui.ApplicationModel.DataTransfer.ShareFileRequest
+            {
+                Title = "Export Camshaft Profile",
+                File = new Microsoft.Maui.ApplicationModel.DataTransfer.ShareFile(tempFile)
+            });
+        }
+        catch (Exception ex)
+        {
+            ShowAlert($"Export failed: {ex.Message}", true);
+        }
+    }
+
+    // Esporta TUTTI i profili con il FileSaver (Scegli dove salvare)
+    private async Task ExportAllProfiles()
+    {
+        try
+        {
+            var existingProfiles = await Storage.GetAllProfilesAsync();
+            if (existingProfiles == null || !existingProfiles.Any())
+            {
+                ShowAlert("No profiles to export.", true);
+                return;
+            }
+
+            // Serializziamo l'intera lista
+            string json = System.Text.Json.JsonSerializer.Serialize(existingProfiles, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            string fileName = $"4Fun_GlobalBackup_{DateTime.Now:yyyyMMdd_HHmm}.json";
+
+            // Usiamo il FileSaver del Community Toolkit invece dello Share
+            using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            var fileSaverResult = await CommunityToolkit.Maui.Storage.FileSaver.Default.SaveAsync(fileName, stream, default);
+
+            if (fileSaverResult.IsSuccessful)
+            {
+                ShowAlert("Global backup saved successfully!", false);
+            }
+            else
+            {
+                // L'utente ha chiuso la finestra senza salvare
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowAlert($"Export failed: {ex.Message}", true);
+        }
     }
 }

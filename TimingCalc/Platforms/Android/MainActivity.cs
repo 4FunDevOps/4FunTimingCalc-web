@@ -1,4 +1,6 @@
-﻿using Android.App;
+﻿#pragma warning disable CA1416
+
+using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
@@ -13,44 +15,32 @@ namespace TimingCalc
               LaunchMode = LaunchMode.SingleTop, // CRITICO: Evita cloni dell'app
               ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
 
-    // Filtro 1: Link standard web 
+    // Filtro 1: Link standard web (Opzionale, utile per il futuro)
     [IntentFilter(new[] { Intent.ActionView },
         Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
         DataScheme = "https",
-        DataHost = "timingcalc.app",
-        DataPathPrefix = "/share")]
+        DataHost = "4fundevops.github.io",
+        DataPathPrefix = "/4FunTimingCalc-web")]
 
-    // Filtro 2: Custom URI Scheme infallibile per i test 
+    // Filtro 2: Custom URI Scheme (Quello che stiamo usando ora tramite JavaScript)
     [IntentFilter(new[] { Intent.ActionView },
         Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
         DataScheme = "timingcalc",
         DataHost = "share")]
     public class MainActivity : MauiAppCompatActivity
     {
-        /// <summary>
-        /// Gestisce il caso in cui l'app viene avviata da zero.
-        /// </summary>
-        /// <param name="savedInstanceState">Stato precedente salvato (può essere null).</param>
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             ProcessIntent(Intent);
         }
 
-        /// <summary>
-        /// Gestisce il caso in cui l'app era già in background e viene "svegliata" dal link.
-        /// </summary>
-        /// <param name="intent">L'intent di Android (può essere null).</param>
         protected override void OnNewIntent(Intent? intent)
         {
             base.OnNewIntent(intent);
             ProcessIntent(intent);
         }
 
-        /// <summary>
-        /// Estrae l'URI dall'Intent e lo passa al servizio Blazor in modo sicuro.
-        /// </summary>
-        /// <param name="intent">L'oggetto Intent fornito dal sistema operativo Android (può essere null).</param>
         private void ProcessIntent(Intent? intent)
         {
             if (intent?.Action == Intent.ActionView && intent.Data != null)
@@ -64,6 +54,7 @@ namespace TimingCalc
 
                     if (deepLinkState != null)
                     {
+                        // Salva l'URI e avvisa la UI (Blazor)
                         deepLinkState.PendingUri = uri;
                         deepLinkState.NotifyLinkReceived(uri);
                     }

@@ -31,7 +31,6 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* Class to hide the download button on PC */
         .hide-on-desktop { display: none; }
         @media (max-width: 1024px) {
             .hide-on-desktop { display: inline-block; }
@@ -65,54 +64,40 @@
     </div>
 
     <script>
-        // 1. Get parameters from shared URL
         const queryString = window.location.search;
-        const appLink = "timingcalc://share" + queryString;
+        const appLink = "timingcalc://share" + queryString; 
 
-        // 2. Check if we are on a mobile device
         function isMobileDevice() {
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
 
-        // 3. The "iFrame Trick" to open the app silently without triggering Chrome errors
-        function tryOpenAppSilently() {
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = appLink;
-            document.body.appendChild(iframe);
-            
-            // Clean up the iframe after 1 second
-            setTimeout(() => {
-                if(document.body.contains(iframe)) {
-                    document.body.removeChild(iframe);
-                }
-            }, 1000);
-        }
-
         window.onload = function() {
-            // Adjust texts if the user opens the link on a computer
             if (!isMobileDevice()) {
                 document.getElementById('downloadBtn').style.display = 'none';
                 document.getElementById('pcMessage').style.display = 'block';
                 document.querySelector('#fallbackSection p').innerText = "You are using a computer. This calculator is designed to be used on mobile devices.";
             }
-
-            // Try to open the app silently
-            tryOpenAppSilently();
-
-            // After 2.5 seconds, show the menu
+            
+            if (isMobileDevice() && queryString) {
+                window.location.replace(appLink);
+            }
+            
             setTimeout(function() {
-                document.getElementById('loadingSection').style.display = 'none';
-                document.getElementById('fallbackSection').style.display = 'block';
+                const loadingSec = document.getElementById('loadingSection');
+                const fallbackSec = document.getElementById('fallbackSection');
+                
+                if (loadingSec) loadingSec.style.display = 'none';
+                if (fallbackSec) fallbackSec.style.display = 'block';
             }, 2500);
         };
 
-        // "Try again" button handler
-        document.getElementById('manualOpenBtn').onclick = function(e) {
-            e.preventDefault();
-            // On manual click, browser error is tolerated because it's user-initiated
-            window.location.href = appLink; 
-        };
+        const manualBtn = document.getElementById('manualOpenBtn');
+        if (manualBtn) {
+            manualBtn.onclick = function(e) {
+                e.preventDefault();
+                window.location.href = appLink; 
+            };
+        }
     </script>
 </body>
 </html>

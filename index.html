@@ -1,103 +1,126 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shared TimingCalc Profile</title>
+    <title>4Fun TimingCalc - Update Required</title>
     <style>
         body {
-            background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, sans-serif;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100vh; margin: 0; text-align: center; padding: 20px;
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .container {
-            background-color: #1e1e1e; padding: 40px 30px; border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8); max-width: 400px; width: 100%; border: 1px solid #333;
+            background-color: #1e1e1e;
+            padding: 25px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            max-width: 440px;
+            width: 100%;
+            border: 1px solid #333;
         }
-        h1 { color: #ffffff; margin-bottom: 10px; font-size: 1.5rem; }
-        p { color: #aaaaaa; margin-bottom: 30px; line-height: 1.5; }
-        .btn {
-            display: inline-block; background-color: #555555; color: #ffffff; text-decoration: none;
-            padding: 15px 25px; border-radius: 8px; font-weight: bold; letter-spacing: 1px;
-            width: 100%; box-sizing: border-box; border: 2px solid #ffffff; transition: 0.2s; margin-bottom: 15px;
+        h1 {
+            color: #ffffff;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
         }
-        .btn:hover { background-color: #666666; }
-        .btn:active { background-color: #e06666; border-color: #e06666; transform: scale(0.98); }
-        .btn-download { background-color: #4a90e2; border-color: #4a90e2; }
-        .btn-download:hover { background-color: #357abd; }
-        .loader {
-            border: 4px solid #333; border-top: 4px solid #4a90e2; border-radius: 50%;
-            width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px auto;
+        .notice-box {
+            background-color: #2a2000;
+            border: 2px solid #ffcc00;
+            color: #fff3cd;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 0.92rem;
+            line-height: 1.5;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .hide-on-desktop { display: none; }
-        @media (max-width: 1024px) {
-            .hide-on-desktop { display: inline-block; }
+        .notice-box strong {
+            color: #ffcc00;
+        }
+        .step {
+            background: #222222;
+            border-left: 4px solid #1d4ed8;
+            padding: 12px;
+            margin: 10px 0;
+            text-align: left;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            line-height: 1.4;
+        }
+        .btn-download {
+            display: inline-block;
+            background-color: #1d4ed8;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 16px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: 0.2s;
+            font-size: 1.05rem;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #3b82f6;
+        }
+        .btn-download:hover {
+            background-color: #1e40af;
+        }
+        .social-links {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888888;
+        }
+        .social-links a {
+            color: #4a90e2;
+            text-decoration: none;
+            margin: 0 8px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="loadingSection">
-            <div class="loader"></div>
-            <h1>Opening Cam Profile...</h1>
-            <p>If TimingCalc is installed on your phone, the profile will load in a moment.</p>
+        <h1>4Fun TimingCalc - Version 1.0.1</h1>
+        
+        <div class="notice-box">
+            <strong>⚠️ PERCHÉ AGGIORNARE? / WHY UPDATE?</strong><br><br>
+            La versione v1.0.0 contiene bug di contrasto visivo. La nuova <strong>v1.0.1</strong> corregge tutti i problemi grafici, migliora i pulsanti ed è 100% ottimizzata!
         </div>
 
-        <div id="fallbackSection" style="display: none;">
-            <h1>App Not Found</h1>
-            <p>You don't have the app installed, or your browser blocked it from opening automatically.</p>
-            
-            <a href="#" id="manualOpenBtn" class="btn">
-                TRY OPENING THE APP AGAIN
-            </a>
-            
-            <a href="./4FunTimingCalc.apk" download class="btn btn-download hide-on-desktop" id="downloadBtn">
-                DOWNLOAD THE APP (Android APK)
-            </a>
-            
-            <p id="pcMessage" style="display: none; font-size: 0.85rem; margin-top: 15px; color: #ff9800;">
-                APK files only work on Android smartphones. Open this link from your phone to use the calculator.
-            </p>
+        <div class="step">
+            1️⃣ <strong>DISINSTALLA LA VECCHIA APP:</strong><br>
+            Rimuovi la versione v1.0.0 dal tuo telefono.<br>
+            <small style="color: #aaa;">Uninstall the old v1.0.0 app from your phone home screen.</small>
+        </div>
+
+        <div class="step">
+            2️⃣ <strong>INSTALLA LA NUOVA VERSIONE:</strong><br>
+            Scarica ed installa il nuovo file APK dal pulsante qui sotto.<br>
+            <small style="color: #aaa;">Download and install the new v1.0.1 APK below.</small>
+        </div>
+
+        <a href="./4FunTimingCalc.apk" download class="btn-download">
+            ⬇️ DOWNLOAD NEW VERSION 1.0.1 (APK)
+        </a>
+
+        <div class="social-links">
+            Visit Socials for new Updates:<br>
+            <a href="https://facebook.com/facebook.4funmotorsport" target="_blank">Facebook</a> | 
+            <a href="https://instagram.com/4funmotorsport/" target="_blank">Instagram</a>
         </div>
     </div>
-
-    <script>
-        const queryString = window.location.search;
-        const appLink = "timingcalc://share" + queryString; 
-
-        function isMobileDevice() {
-            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        }
-
-        window.onload = function() {
-            if (!isMobileDevice()) {
-                document.getElementById('downloadBtn').style.display = 'none';
-                document.getElementById('pcMessage').style.display = 'block';
-                document.querySelector('#fallbackSection p').innerText = "You are using a computer. This calculator is designed to be used on mobile devices.";
-            }
-            
-            if (isMobileDevice() && queryString) {
-                window.location.replace(appLink);
-            }
-            
-            setTimeout(function() {
-                const loadingSec = document.getElementById('loadingSection');
-                const fallbackSec = document.getElementById('fallbackSection');
-                
-                if (loadingSec) loadingSec.style.display = 'none';
-                if (fallbackSec) fallbackSec.style.display = 'block';
-            }, 2500);
-        };
-
-        const manualBtn = document.getElementById('manualOpenBtn');
-        if (manualBtn) {
-            manualBtn.onclick = function(e) {
-                e.preventDefault();
-                window.location.href = appLink; 
-            };
-        }
-    </script>
 </body>
 </html>

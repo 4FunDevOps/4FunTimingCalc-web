@@ -21,18 +21,24 @@
 		<ApplicationId>com.companyname.timingcalc</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-		<ApplicationVersion>1</ApplicationVersion>
+		<Version>1.0.1</Version>
+		<PackageVersion>1.0.1</PackageVersion>
+		<ApplicationDisplayVersion>1.0.1</ApplicationDisplayVersion>
+		<ApplicationVersion>2</ApplicationVersion>
 
 		<WindowsPackageType>None</WindowsPackageType>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-android|AnyCPU'">
+	<!-- Configurazione Firma APK Release per Android (Universale) -->
+	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android' AND '$(Configuration)' == 'Release'">
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
-		<AndroidKeyStore>False</AndroidKeyStore>
-		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
+		<AndroidKeyStore>True</AndroidKeyStore>
+		<AndroidSigningKeyStore>secrets/timingcalc.keystore</AndroidSigningKeyStore>
+		<AndroidSigningStorePass>!xsdrAE4ZVFyH5w27skDD</AndroidSigningStorePass>
+		<AndroidSigningKeyAlias>timingcalc</AndroidSigningKeyAlias>
+		<AndroidSigningKeyPass>!xsdrAE4ZVFyH5w27skDD</AndroidSigningKeyPass>
 	</PropertyGroup>
 
 	<!-- Configurazione Debug per Android -->

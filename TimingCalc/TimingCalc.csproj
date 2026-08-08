@@ -5,13 +5,6 @@
 		<TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(TargetFrameworks);net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 
-		<!-- Note for MacCatalyst:
-            The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
-            When specifying both architectures, use the plural <RuntimeIdentifiers> instead of the singular <RuntimeIdentifier>.
-            The Mac App Store will NOT accept apps with ONLY maccatalyst-arm64 indicated;
-            either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
-		<!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
-
 		<OutputType>Exe</OutputType>
 		<RootNamespace>TimingCalc</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -20,12 +13,6 @@
 		<EnableDefaultCssItems>false</EnableDefaultCssItems>
 		<Nullable>enable</Nullable>
 
-		<!-- Enable XAML source generation for faster build times and improved performance.
-             This generates C# code from XAML at compile time instead of runtime inflation.
-             To disable, remove this line.
-             For individual files, you can override by setting Inflator metadata:
-               <MauiXaml Update="MyPage.xaml" Inflator="Default" /> (reverts to defaults: Runtime for Debug, XamlC for Release)
-               <MauiXaml Update="MyPage.xaml" Inflator="Runtime" /> (force runtime inflation) -->
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
 		<!-- Display name -->
@@ -34,7 +21,9 @@
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.timingcalc</ApplicationId>
 
-		<!-- Versions -->
+		<!-- Versions (Sincronizzate per bloccare definitivamente NU1105) -->
+		<Version>1.0.1</Version>
+		<PackageVersion>1.0.1</PackageVersion>
 		<ApplicationDisplayVersion>1.0.1</ApplicationDisplayVersion>
 		<ApplicationVersion>2</ApplicationVersion>
 
@@ -48,18 +37,24 @@
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-android|AnyCPU'">
+	<!-- Configurazione Firma APK Release per Android -->
+	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android' AND '$(Configuration)' == 'Release'">
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
-		<AndroidKeyStore>False</AndroidKeyStore>
-		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
+		<AndroidKeyStore>True</AndroidKeyStore>
+		<AndroidSigningKeyStore>secrets/timingcalc.keystore</AndroidSigningKeyStore>
+		<AndroidSigningStorePass>!xsdrAE4ZVFyH5w27skDD</AndroidSigningStorePass>
+		<AndroidSigningKeyAlias>timingcalc</AndroidSigningKeyAlias>
+		<AndroidSigningKeyPass>!xsdrAE4ZVFyH5w27skDD</AndroidSigningKeyPass>
+		<RuntimeIdentifier>android-arm64</RuntimeIdentifier>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-android|AnyCPU'">
+	<!-- Configurazione Debug per Android -->
+	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android' AND '$(Configuration)' == 'Debug'">
 		<AndroidKeyStore>False</AndroidKeyStore>
 	</PropertyGroup>
 
+	<!-- Protezione AOT in Release -->
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
-		<PublishTrimmed>true</PublishTrimmed>
 		<RunAOTCompilation>true</RunAOTCompilation>
 	</PropertyGroup>
 
@@ -70,14 +65,6 @@
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
-	<!--<ItemGroup>
-	  <AndroidResource Remove="Platforms\Android\Resources\drawable\transparent_pixel.xml" />
-	</ItemGroup>-->
-
-	<!--<ItemGroup>
-	  <AndroidResource Remove="Platforms\Android\Resources\drawable\splash_logo.png" />
-	</ItemGroup>-->
-
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="14.1.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.41" />
@@ -85,8 +72,8 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 	</ItemGroup>
 
-	<!--<ItemGroup>
-      <Folder Include="Resources\Splash\" />
-    </ItemGroup>-->
+	<ItemGroup>
+		<Folder Include="Secrets\" />
+	</ItemGroup>
 
 </Project>

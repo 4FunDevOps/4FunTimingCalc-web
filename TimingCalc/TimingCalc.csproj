@@ -1,9 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
+		<!-- Target Piattaforma: Android -->
 		<TargetFrameworks>net10.0-android</TargetFrameworks>
-		<TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(TargetFrameworks);net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 
 		<OutputType>Exe</OutputType>
 		<RootNamespace>TimingCalc</RootNamespace>
@@ -21,31 +20,19 @@
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.timingcalc</ApplicationId>
 
-		<!-- Versions (Sincronizzate per bloccare definitivamente NU1105) -->
-		<Version>1.0.1</Version>
-		<PackageVersion>1.0.1</PackageVersion>
-		<ApplicationDisplayVersion>1.0.1</ApplicationDisplayVersion>
-		<ApplicationVersion>2</ApplicationVersion>
+		<!-- Versions -->
+		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<ApplicationVersion>1</ApplicationVersion>
 
-		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 		<WindowsPackageType>None</WindowsPackageType>
 
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
-		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 	</PropertyGroup>
 
-	<!-- Configurazione Firma APK Release per Android -->
-	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android' AND '$(Configuration)' == 'Release'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-android|AnyCPU'">
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
-		<AndroidKeyStore>True</AndroidKeyStore>
-		<AndroidSigningKeyStore>secrets/timingcalc.keystore</AndroidSigningKeyStore>
-		<AndroidSigningStorePass>!xsdrAE4ZVFyH5w27skDD</AndroidSigningStorePass>
-		<AndroidSigningKeyAlias>timingcalc</AndroidSigningKeyAlias>
-		<AndroidSigningKeyPass>!xsdrAE4ZVFyH5w27skDD</AndroidSigningKeyPass>
-		<RuntimeIdentifier>android-arm64</RuntimeIdentifier>
+		<AndroidKeyStore>False</AndroidKeyStore>
+		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
 	</PropertyGroup>
 
 	<!-- Configurazione Debug per Android -->

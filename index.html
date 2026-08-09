@@ -134,5 +134,13 @@
             <a href="https://instagram.com/4funmotorsport/" target="_blank">Instagram</a>
         </div>
     </div>
+
+    <!-- Script di reindirizzamento Deep-Link per i link condivisi -->
+    <script>
+        const queryString = window.location.search;
+        if (queryString && queryString.includes("ino=")) {
+            window.location.replace("timingcalc://share" + queryString);
+        }
+    </script>
 </body>
 </html>

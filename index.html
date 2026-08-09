@@ -24,7 +24,7 @@
             padding: 25px 20px;
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            max-width: 440px;
+            max-width: 450px;
             width: 100%;
             border: 1px solid #333;
         }
@@ -45,8 +45,16 @@
             font-size: 0.92rem;
             line-height: 1.5;
         }
+        .notice-win {
+            background-color: #0d2847;
+            border-color: #3b82f6;
+            color: #dbeafe;
+        }
         .notice-box strong {
             color: #ffcc00;
+        }
+        .notice-win strong {
+            color: #60a5fa;
         }
         .step {
             background: #222222;
@@ -62,22 +70,27 @@
             border-left-color: #eab308;
             background: #282305;
         }
+        .step-info {
+            border-left-color: #10b981;
+            background: #062319;
+        }
         .btn-download {
             display: inline-block;
             background-color: #1d4ed8;
             color: #ffffff;
             text-decoration: none;
-            padding: 16px 20px;
+            padding: 16px 15px;
             border-radius: 8px;
             font-weight: bold;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             width: 100%;
             box-sizing: border-box;
             transition: 0.2s;
-            font-size: 1.05rem;
-            margin-top: 10px;
+            font-size: 0.98rem;
+            margin-top: 15px;
             margin-bottom: 5px;
             border: 1px solid #3b82f6;
+            white-space: nowrap;
         }
         .btn-download:hover {
             background-color: #1e40af;
@@ -106,41 +119,71 @@
     <div class="container">
         <h1>4Fun TimingCalc - Version 1.0.1</h1>
         
-        <div class="notice-box">
-            <strong>⚠️ AUTOMATIC UPDATE NOT POSSIBLE:</strong><br><br>
-            Automatic in-app update is not supported for this release due to version compatibility issues. Please follow the steps below to complete the update manually!
+        <!-- ================= SEZIONE ANDROID ================= -->
+        <div id="androidSection" style="display: none;">
+            <div class="notice-box">
+                <strong>⚠️ AUTOMATIC UPDATE NOT POSSIBLE:</strong><br><br>
+                Automatic in-app update is not supported for this release due to version compatibility issues. Please follow the steps below to complete the update manually!
+            </div>
+
+            <div class="step">
+                1️⃣ <strong>DOWNLOAD NEW VERSION:</strong><br>
+                Download the new v1.0.1 package using the blue button below.
+            </div>
+
+            <div class="step step-warning">
+                2️⃣ <strong>BACKUP YOUR PROFILES & DIAGRAMS:</strong><br>
+                Open your current app, go to <strong>ARCHIVE</strong> and tap <strong>EXPORT ALL</strong> to save a backup file of your personal camshaft profiles!
+            </div>
+
+            <div class="step">
+                3️⃣ <strong>UNINSTALL OLD APP:</strong><br>
+                Uninstall the old v1.0.0 app from your phone's home screen.
+            </div>
+
+            <div class="step">
+                4️⃣ <strong>REINSTALL NEW VERSION:</strong><br>
+                <strong>ONLY AFTER</strong> backing up your data and uninstalling the old app, open and install the newly downloaded v1.0.1 package!
+            </div>
+
+            <a href="./4FunTimingCalc.apk" download class="btn-download">
+                📱 DOWNLOAD REL. 1.0.1 (Android APK)
+            </a>
         </div>
 
-        <div class="step">
-            1️⃣ <strong>DOWNLOAD NEW VERSION:</strong><br>
-            Download the new v1.0.1 package using the blue button below.
+        <!-- ================= SEZIONE WINDOWS PC ================= -->
+        <div id="windowsSection" style="display: none;">
+            <div class="notice-box notice-win">
+                <strong>👋 WELCOME TO 4FUN TIMINGCALC FOR WINDOWS PC!</strong><br><br>
+                Welcome to the download section of the Camshaft Timing Calculator for 4-stroke engines. Follow the simple steps below to setup the App on your PC!
+            </div>
+
+            <div class="step">
+                1️⃣ <strong>DOWNLOAD THE ZIP PACKAGE:</strong><br>
+                Download the official <strong>4FunTimingCalc_Win10.zip</strong> archive using the blue button below.
+            </div>
+
+            <div class="step">
+                2️⃣ <strong>EXTRACT TO A SAFE FOLDER:</strong><br>
+                Unzip the downloaded archive into a safe folder on your Windows 10/11 operating system (e.g. Documents or C:\Apps).
+            </div>
+
+            <div class="step">
+                3️⃣ <strong>CREATE A DESKTOP SHORTCUT:</strong><br>
+                Create a desktop shortcut for <strong>TimingCalc.exe</strong> located inside the extracted folder and you are ready to use our App!
+            </div>
+
+            <div class="step step-info">
+                ℹ️ <strong>FUTURE UPDATES:</strong><br>
+                This version will be updated in the future. You will be automatically notified directly when opening the Application!
+            </div>
+
+            <a href="https://github.com/4FunDevOps/4FunTimingCalc-web/releases/download/v1.0.1/4FunTimingCalc_Win10.zip" class="btn-download btn-win">
+                💻 DOWNLOAD REL. 1.0.1 (Windows PC ZIP)
+            </a>
         </div>
 
-        <div class="step step-warning">
-            2️⃣ <strong>BACKUP YOUR PROFILES & DIAGRAMS:</strong><br>
-            Open your current app, go to <strong>ARCHIVE</strong> and tap <strong>EXPORT ALL</strong> to save a backup file of your personal camshaft profiles!
-        </div>
-
-        <div class="step">
-            3️⃣ <strong>UNINSTALL OLD APP:</strong><br>
-            Uninstall the old v1.0.0 app from your phone's home screen.
-        </div>
-
-        <div class="step">
-            4️⃣ <strong>REINSTALL NEW VERSION:</strong><br>
-            <strong>ONLY AFTER</strong> backing up your data and uninstalling the old app, open and install the newly downloaded v1.0.1 package!
-        </div>
-
-        <!-- Pulsante Download Android APK (Mostrato solo su dispositivi Android) -->
-        <a href="./4FunTimingCalc.apk" download id="androidBtn" class="btn-download" style="display: none;">
-            📱 DOWNLOAD VERSION 1.0.1 (Android APK)
-        </a>
-
-        <!-- Pulsante Download Windows PC ZIP (Mostrato solo su PC Windows) -->
-        <a href="https://github.com/4FunDevOps/4FunTimingCalc-web/releases/download/v1.0.1/4FunTimingCalc_Win10.zip" id="windowsBtn" class="btn-download btn-win" style="display: none;">
-            💻 DOWNLOAD VERSION 1.0.1 (Windows PC ZIP)
-        </a>
-
+        <!-- Links Social -->
         <div class="social-links">
             Visit Socials for new Updates:<br>
             <a href="https://facebook.com/facebook.4funmotorsport" target="_blank">Facebook</a> | 
@@ -155,16 +198,19 @@
         const isAndroid = /Android/i.test(ua);
         const isWindows = /Windows/i.test(ua);
 
-        const androidBtn = document.getElementById('androidBtn');
-        const windowsBtn = document.getElementById('windowsBtn');
+        const androidSection = document.getElementById('androidSection');
+        const windowsSection = document.getElementById('windowsSection');
 
         if (isWindows) {
-            windowsBtn.style.display = 'inline-block';
+            windowsSection.style.display = 'block';
+            androidSection.style.display = 'none';
         } else if (isAndroid) {
-            androidBtn.style.display = 'inline-block';
+            androidSection.style.display = 'block';
+            windowsSection.style.display = 'none';
         } else {
-            // Per qualsiasi altro sistema operativo non identificato, mostra il pulsante Android di default
-            androidBtn.style.display = 'inline-block';
+            // Default per altri sistemi
+            androidSection.style.display = 'block';
+            windowsSection.style.display = 'none';
         }
 
         // 2. Reindirizzamento Deep-Link per i link di condivisione profili

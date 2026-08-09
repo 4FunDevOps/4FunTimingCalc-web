@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4Fun TimingCalc - Update Required</title>
+    <title>4Fun TimingCalc - Download & Update</title>
     <style>
         body {
             background-color: #121212;
@@ -75,15 +75,22 @@
             box-sizing: border-box;
             transition: 0.2s;
             font-size: 1.05rem;
-            margin-top: 15px;
-            margin-bottom: 15px;
+            margin-top: 10px;
+            margin-bottom: 5px;
             border: 1px solid #3b82f6;
         }
         .btn-download:hover {
             background-color: #1e40af;
         }
+        .btn-win {
+            background-color: #2563eb;
+            border-color: #60a5fa;
+        }
+        .btn-win:hover {
+            background-color: #1d4ed8;
+        }
         .social-links {
-            margin-top: 15px;
+            margin-top: 20px;
             font-size: 0.85rem;
             color: #888888;
         }
@@ -106,7 +113,7 @@
 
         <div class="step">
             1️⃣ <strong>DOWNLOAD NEW VERSION:</strong><br>
-            Download the new v1.0.1 APK file using the blue button below.
+            Download the new v1.0.1 package using the blue button below.
         </div>
 
         <div class="step step-warning">
@@ -121,11 +128,17 @@
 
         <div class="step">
             4️⃣ <strong>REINSTALL NEW VERSION:</strong><br>
-            <strong>ONLY AFTER</strong> backing up your data and uninstalling the old app, open and install the newly downloaded v1.0.1 APK!
+            <strong>ONLY AFTER</strong> backing up your data and uninstalling the old app, open and install the newly downloaded v1.0.1 package!
         </div>
 
-        <a href="./4FunTimingCalc.apk" download class="btn-download">
-            ⬇️ DOWNLOAD VERSION 1.0.1 (APK)
+        <!-- Pulsante Download Android APK (Mostrato solo su dispositivi Android) -->
+        <a href="./4FunTimingCalc.apk" download id="androidBtn" class="btn-download" style="display: none;">
+            📱 DOWNLOAD VERSION 1.0.1 (Android APK)
+        </a>
+
+        <!-- Pulsante Download Windows PC ZIP (Mostrato solo su PC Windows) -->
+        <a href="https://github.com/4FunDevOps/4FunTimingCalc-web/releases/download/v1.0.1/4FunTimingCalc_Win10.zip" id="windowsBtn" class="btn-download btn-win" style="display: none;">
+            💻 DOWNLOAD VERSION 1.0.1 (Windows PC ZIP)
         </a>
 
         <div class="social-links">
@@ -135,8 +148,26 @@
         </div>
     </div>
 
-    <!-- Script di reindirizzamento Deep-Link per i link condivisi -->
+    <!-- Script Smart Rilevamento OS & Deep-Link -->
     <script>
+        // 1. Rilevamento automatico del Sistema Operativo
+        const ua = navigator.userAgent;
+        const isAndroid = /Android/i.test(ua);
+        const isWindows = /Windows/i.test(ua);
+
+        const androidBtn = document.getElementById('androidBtn');
+        const windowsBtn = document.getElementById('windowsBtn');
+
+        if (isWindows) {
+            windowsBtn.style.display = 'inline-block';
+        } else if (isAndroid) {
+            androidBtn.style.display = 'inline-block';
+        } else {
+            // Per qualsiasi altro sistema operativo non identificato, mostra il pulsante Android di default
+            androidBtn.style.display = 'inline-block';
+        }
+
+        // 2. Reindirizzamento Deep-Link per i link di condivisione profili
         const queryString = window.location.search;
         if (queryString && queryString.includes("ino=")) {
             window.location.replace("timingcalc://share" + queryString);
